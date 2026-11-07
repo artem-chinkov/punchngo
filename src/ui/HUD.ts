@@ -34,6 +34,8 @@ export class HUD {
   private readonly feedback: HTMLElement
   private readonly overlay: HTMLElement
   private readonly heading: HTMLElement
+  private readonly guide: HTMLElement
+  private readonly comboPause: HTMLElement
   private readonly description: HTMLElement
   private readonly button: HTMLButtonElement
   private messageUntil = 0
@@ -60,7 +62,17 @@ export class HUD {
       <div class="round-overlay" hidden>
         <section class="round-card">
           <p class="round-kicker">PARK / COMBAT SANDBOX v0.1</p>
-          <h1></h1><p class="round-copy"></p><button type="button"></button>
+          <h1></h1>
+          <ul class="round-guide" hidden>
+            <li><span aria-hidden="true">👣</span><p><strong>Движение.</strong> Герой сам идёт по парку и останавливается перед врагами.</p></li>
+            <li><span aria-hidden="true">🥊</span><p><strong>Удар.</strong> Коротко тапни по экрану, чтобы ударить. Игра сама выберет цель.</p></li>
+            <li><span aria-hidden="true">🛡️</span><p><strong>Блок.</strong> Удерживай палец на экране, чтобы поднять блок. Каждый заблокированный удар расходует выносливость.</p></li>
+            <li><span aria-hidden="true">❗</span><p><strong>Красный знак.</strong> Враг замахнулся. Приготовься блокировать или дождись жёлтого сигнала.</p></li>
+            <li><span aria-hidden="true">🟡</span><p><strong>Контратака.</strong> Как только знак станет жёлтым, тапни по экрану. Ты прервёшь атаку и оглушишь врага.</p></li>
+            <li><span aria-hidden="true">💥</span><p><strong>Комбо.</strong> Попади три раза подряд. Третий удар — усиленный хук, который может задеть соседей. После него подожди <strong data-combo-pause></strong> до следующего удара. В эту паузу удерживай палец, если нужно поставить блок.</p></li>
+          </ul>
+          <p class="round-copy" hidden></p>
+          <button type="button"></button>
         </section>
       </div>
     `
@@ -77,6 +89,8 @@ export class HUD {
     this.feedback = hud.querySelector('[data-feedback]')!
     this.overlay = hud.querySelector('.round-overlay')!
     this.heading = hud.querySelector('h1')!
+    this.guide = hud.querySelector('.round-guide')!
+    this.comboPause = hud.querySelector('[data-combo-pause]')!
     this.description = hud.querySelector('.round-copy')!
     this.button = hud.querySelector('button')!
     this.button.addEventListener('click', start)
@@ -123,10 +137,12 @@ export class HUD {
     if (phase !== this.lastPhase) {
       this.lastPhase = phase
       this.overlay.hidden = phase !== 'ready' && !run.finished
+      this.guide.hidden = phase !== 'ready'
+      this.description.hidden = !run.finished
       if (phase === 'ready') {
         this.heading.textContent = "PUNCH 'N' GO"
-        this.description.textContent = 'Одна схватка на парковой аллее. Тап — удар. Удержание — блок. Жёлтый сигнал — момент для контратаки.'
-        this.button.textContent = 'Начать'
+        this.comboPause.textContent = combat.balance.postComboInterval.toLocaleString('ru-RU') + ' с'
+        this.button.textContent = 'Начать бой'
       } else if (run.finished) {
         this.heading.textContent = phase === 'victory' ? 'Путь свободен' : 'Нокаут'
         this.description.textContent = `Очки: ${combat.score} · Лучшее комбо: ${combat.bestCombo}`

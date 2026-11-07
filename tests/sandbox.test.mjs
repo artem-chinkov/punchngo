@@ -104,6 +104,54 @@ test('a counter overrides target lock and its bonus stays on the stunned enemy',
   assert.equal(enemy.bonus, false)
 })
 
+test('a successful third hit delays the next punch and still lets the player block', () => {
+  const run = atFight()
+  const { combat } = run
+  until(run, () => combat.target !== undefined)
+  const interval = combat.balance.punchInterval
+  const secondAt = run.now + interval
+  const hookAt = secondAt + interval
+  combat.punch(run.now, run.z)
+  combat.punch(secondAt - 0.001, run.z)
+  assert.equal(combat.combo, 1)
+  combat.punch(secondAt, run.z)
+  assert.equal(combat.combo, 2)
+  combat.punch(hookAt, run.z)
+  assert.equal(combat.combo, 3)
+  assert.equal(combat.strike.hook, true)
+
+  combat.setBlock(true, hookAt + 0.18)
+  assert.equal(combat.blocking, true)
+  combat.setBlock(false, hookAt + 0.2)
+  const stamina = combat.stamina
+  combat.punch(hookAt + 0.499, run.z)
+  assert.equal(combat.combo, 3)
+  assert.equal(combat.stamina, stamina)
+  combat.punch(hookAt + 0.5, run.z)
+  assert.equal(combat.combo, 4)
+  assert.equal(combat.strike.hook, false)
+})
+
+test('a missed third punch keeps the ordinary punch interval', () => {
+  const run = atFight()
+  const { combat } = run
+  until(run, () => combat.target !== undefined)
+  const interval = combat.balance.punchInterval
+  const secondAt = run.now + interval
+  const hookAt = secondAt + interval
+  combat.punch(run.now, run.z)
+  combat.punch(secondAt, run.z)
+  const positions = combat.enemies.map(enemy => enemy.z)
+  for (const enemy of combat.enemies) enemy.z += combat.balance.reach
+  combat.punch(hookAt, run.z)
+  assert.equal(combat.strike.hook, true)
+  assert.equal(events(run, 'miss').length, 1)
+  combat.enemies.forEach((enemy, index) => { enemy.z = positions[index] })
+  combat.punch(hookAt + interval, run.z)
+  assert.equal(combat.combo, 1)
+  assert.equal(combat.strike.hook, false)
+})
+
 test('block protects health, breaks on exhaustion, and combo still expires', () => {
   const run = atFight()
   const { combat } = run

@@ -111,7 +111,7 @@ export class CombatSystem {
     const target = this.selectTarget(now, z)
     this.strike = { hand: this.hand, since: now, targetX: target?.x ?? 0, hook }
     this.hand = this.hand === 'left' ? 'right' : 'left'
-    this.nextPunch = now + this.balance.punchInterval
+    this.nextPunch = now + (hook && target ? this.balance.postComboInterval : this.balance.punchInterval)
     this.stamina -= cost
     if (!target) {
       this.step = 0

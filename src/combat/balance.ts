@@ -19,6 +19,7 @@ export interface Balance {
   punchCost: number
   hookCost: number
   punchInterval: number
+  postComboInterval: number
   reach: number
   sector: number
   blockDrain: number
@@ -48,7 +49,7 @@ export interface Balance {
 
 export const defaultBalance: Balance = {
   hp: 100, stamina: 100, hold: 0.18, damage: 20,
-  punchCost: 6, hookCost: 9, punchInterval: 0.16, reach: 3, sector: 0.79,
+  punchCost: 6, hookCost: 9, punchInterval: 0.16, postComboInterval: 0.5, reach: 3, sector: 0.79,
   blockDrain: 0, blockCost: 15, heavyBlockCost: 30, combatRegen: 10, travelRegen: 20, guardBreak: 1,
   shortWindow: 1.2, comboWindow: 2, hookDamage: 1.5, splashDamage: 0.25, splashRadius: 2.1, retreatGrace: 0.35,
   counterWindow: 0.35, counterStun: 1, counterBonus: 1.5, counterStamina: 8, counterScore: 50,
