@@ -11,7 +11,7 @@ export interface WorldSettings {
   curvature: number
 }
 
-export const defaultWorld: WorldSettings = { speed: 4.3, horizon: 0.37, viewDistance: 54, curvature: 1 }
+export const defaultWorld: WorldSettings = { speed: 3, horizon: 0.22, viewDistance: 54, curvature: 1 }
 
 export function roadCenter(z: number): number {
   return 3.5 * Math.sin(z / 7) + 1.2 * Math.sin(z / 3.8)

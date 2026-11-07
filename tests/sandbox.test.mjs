@@ -41,7 +41,7 @@ test('the camera advances, stops, and enemies grow as they approach in world spa
   const distant = projector.project(enemy.x, enemy.z)
   run.combat.punch(run.now, run.z)
   assert.equal(events(run, 'miss').length, 1)
-  assert.equal(run.combat.stamina, 88)
+  assert.equal(run.combat.stamina, defaultBalance.stamina - defaultBalance.punchCost)
   until(run, () => run.phase === 'combat')
   const close = projector.project(enemy.x, enemy.z)
   assert.ok(close.scale > distant.scale && close.y > distant.y)
@@ -54,9 +54,11 @@ test('the camera advances, stops, and enemies grow as they approach in world spa
 
 test('third hit alternates hands, splashes two enemies, and adds one combo point', () => {
   const run = atFight()
-  run.combat.balance.enemies.thug.windup = 2
   const { combat } = run
   const [thug, quick, brute] = combat.enemies
+  // Keep the test focused on the hook rather than enemy attack timing.
+  for (const enemy of combat.enemies) enemy.nextAttack = Infinity
+  thug.hp = combat.balance.damage * (2 + combat.balance.hookDamage)
   until(run, () => combat.enemies.every(enemy => combat.canReach(enemy, run.z)))
   assert.equal(combat.selectTarget(run.now, run.z), thug)
   combat.punch(run.now, run.z)
@@ -70,10 +72,11 @@ test('third hit alternates hands, splashes two enemies, and adds one combo point
   assert.equal(combat.strike.hook, true)
   assert.equal(combat.step, 0)
   assert.equal(combat.combo, 3)
-  assert.equal(combat.score, 150)
+  assert.equal(combat.score, combat.balance.enemies.thug.reward * combat.balance.combo3)
   assert.equal(thug.hp, 0)
-  assert.equal(quick.hp, quick.maxHp - 5)
-  assert.equal(brute.hp, brute.maxHp - 5)
+  const splash = combat.balance.damage * combat.balance.splashDamage
+  assert.equal(quick.hp, quick.maxHp - splash)
+  assert.equal(brute.hp, brute.maxHp - splash)
   assert.equal(events(run, 'splash').length, 2)
   assert.notEqual(combat.target, thug)
 })
@@ -85,18 +88,19 @@ test('a counter overrides target lock and its bonus stays on the stunned enemy',
   const enemy = counterTarget(run)
   combat.target = combat.enemies.find(other => other !== enemy && combat.canReach(other, run.z))
   assert.notEqual(combat.target, enemy)
+  combat.stamina = combat.balance.stamina - combat.balance.counterStamina
   const stamina = combat.stamina
   combat.punch(run.now, run.z)
   assert.equal(combat.target, enemy)
-  assert.equal(combat.score, 50)
-  assert.equal(combat.stamina, stamina - 12 + 8)
+  assert.equal(combat.score, combat.balance.counterScore)
+  assert.equal(combat.stamina, stamina - combat.balance.punchCost + combat.balance.counterStamina)
   assert.equal(enemy.pose, 'stunned')
   assert.equal(enemy.bonus, true)
   assert.equal(combat.enemies.filter(other => other.bonus).length, 1)
   tick(run, 18)
   const hp = enemy.hp
   combat.punch(run.now, run.z)
-  assert.equal(enemy.hp, Math.max(0, hp - 30))
+  assert.equal(enemy.hp, Math.max(0, hp - combat.balance.damage * combat.balance.counterBonus))
   assert.equal(enemy.bonus, false)
 })
 

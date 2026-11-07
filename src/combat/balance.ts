@@ -48,14 +48,14 @@ export interface Balance {
 
 export const defaultBalance: Balance = {
   hp: 100, stamina: 100, hold: 0.18, damage: 20,
-  punchCost: 12, hookCost: 18, punchInterval: 0.28, reach: 3.05, sector: 0.79,
-  blockDrain: 6, blockCost: 15, heavyBlockCost: 30, combatRegen: 5, travelRegen: 20, guardBreak: 1,
+  punchCost: 6, hookCost: 9, punchInterval: 0.16, reach: 3, sector: 0.79,
+  blockDrain: 0, blockCost: 15, heavyBlockCost: 30, combatRegen: 10, travelRegen: 20, guardBreak: 1,
   shortWindow: 1.2, comboWindow: 2, hookDamage: 1.5, splashDamage: 0.25, splashRadius: 2.1, retreatGrace: 0.35,
   counterWindow: 0.35, counterStun: 1, counterBonus: 1.5, counterStamina: 8, counterScore: 50,
   comboStamina: 3, attackGap: 0.76, combo3: 1.5, combo5: 2, combo10: 3,
   enemies: {
-    thug: { hp: 56, damage: 12, approach: 3.8, strafe: 1.65, windup: 0.9, cooldown: 2.1, recoil: 0.19, reward: 100 },
-    quick: { hp: 38, damage: 8, approach: 5.3, strafe: 2.6, windup: 0.69, cooldown: 1.65, recoil: 0.14, reward: 150 },
-    brute: { hp: 110, damage: 24, approach: 3, strafe: 1.15, windup: 1.17, cooldown: 2.65, recoil: 0.22, reward: 250 },
+    thug: { hp: 300, damage: 12, approach: 3.8, strafe: 1.65, windup: 0.5, cooldown: 1, recoil: 0.5, reward: 100 },
+    quick: { hp: 150, damage: 8, approach: 5.3, strafe: 2.6, windup: 0.2, cooldown: 0.2, recoil: 1, reward: 150 },
+    brute: { hp: 500, damage: 50, approach: 1, strafe: 1.15, windup: 1.17, cooldown: 2.65, recoil: 0.05, reward: 250 },
   },
 }
