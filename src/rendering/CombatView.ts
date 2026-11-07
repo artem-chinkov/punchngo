@@ -77,7 +77,7 @@ export class CombatView {
       if (!visible) continue
 
       const counter = inCounterWindow(enemy, now, combat.balance)
-      const moving = enemy.pose === 'approach' || enemy.pose === 'positioning'
+      const moving = enemy.pose === 'approach' || enemy.pose === 'positioning' || enemy.pose === 'withdraw'
       const gait = Math.sin(visualTime * (moving ? 14 : 4) + enemy.lane * 2)
       const flinch = Math.max(0, 1 - (now - enemy.lastHit) / 0.17)
       const attacking = enemy.pose === 'attack' ? Math.sin(Math.min(1, elapsed / 0.18) * Math.PI) : 0

@@ -13,6 +13,8 @@ export interface Enemy {
   since: number
   until: number
   nextAttack: number
+  nextWithdrawal?: number
+  withdrawalOrigin: number
   lastHit: number
   bonus: boolean
 }
@@ -20,7 +22,7 @@ export interface Enemy {
 export function createEnemy(type: EnemyType, lane: number, z: number, balance: Balance): Enemy {
   const hp = balance.enemies[type].hp
   return { type, x: lane * 2.12, z, lane, hp, maxHp: hp, pose: 'approach',
-    since: 0, until: 0, nextAttack: 0, lastHit: -Infinity, bonus: false }
+    since: 0, until: 0, nextAttack: 0, withdrawalOrigin: z, lastHit: -Infinity, bonus: false }
 }
 
 export function setPose(enemy: Enemy, pose: EnemyPose, now: number, duration = 0) {
@@ -80,6 +82,17 @@ export class EnemyAI {
         if (now >= enemy.until) setPose(enemy, 'positioning', now)
         continue
       }
+      if (enemy.pose === 'withdraw') {
+        if (now >= enemy.until) {
+          enemy.z = enemy.withdrawalOrigin
+          setPose(enemy, 'positioning', now)
+        } else {
+          const travel = stats.retreatDistance / stats.approach
+          const progress = Math.min(1, (now - enemy.since) / travel, (enemy.until - now) / travel)
+          enemy.z = enemy.withdrawalOrigin + stats.retreatDistance * progress ** 2 * (3 - 2 * progress)
+        }
+        continue
+      }
       if (enemy.pose === 'recovery' || enemy.pose === 'hit' || enemy.pose === 'stunned') {
         if (now < enemy.until) continue
         setPose(enemy, 'positioning', now)
@@ -92,7 +105,10 @@ export class EnemyAI {
       if (enemy.pose !== pose) setPose(enemy, pose, now)
     }
 
-    if (!fight || now < this.nextAttack ||
+    if (!fight) return
+    this.startWithdrawal(alive, now)
+
+    if (now < this.nextAttack ||
       alive.some(enemy => enemy.pose === 'telegraph' || enemy.pose === 'attack')) return
 
     const ready = alive.filter(enemy => enemy.pose === 'idle' && enemy.nextAttack <= now &&
@@ -102,5 +118,26 @@ export class EnemyAI {
       this.lastAttacker = attacker
       setPose(attacker, 'telegraph', now, this.balance.enemies[attacker.type].windup)
     }
+  }
+
+  private startWithdrawal(enemies: Enemy[], now: number) {
+    let candidate: Enemy | undefined
+    let earliest = Infinity
+    for (const enemy of enemies) {
+      const stats = this.balance.enemies[enemy.type]
+      if (enemy.pose !== 'idle' || stats.retreatInterval <= 0 || stats.retreatDistance <= 0) continue
+      enemy.nextWithdrawal ??= now + stats.retreatInterval
+      if (enemy.nextWithdrawal <= now && enemy.nextWithdrawal < earliest) {
+        candidate = enemy
+        earliest = enemy.nextWithdrawal
+      }
+    }
+    if (!candidate || enemies.some(enemy => enemy.pose === 'withdraw')) return
+
+    const stats = this.balance.enemies[candidate.type]
+    const duration = 2 * stats.retreatDistance / stats.approach + stats.retreatHold
+    candidate.withdrawalOrigin = candidate.z
+    candidate.nextWithdrawal = now + stats.retreatInterval
+    setPose(candidate, 'withdraw', now, duration)
   }
 }

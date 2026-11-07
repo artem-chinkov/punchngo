@@ -56,11 +56,14 @@ test('third hit alternates hands, splashes two enemies, and adds one combo point
   const run = atFight()
   const { combat } = run
   const [thug, quick, brute] = combat.enemies
-  // Keep the test focused on the hook rather than enemy attack timing.
-  for (const enemy of combat.enemies) enemy.nextAttack = Infinity
+  // Keep all three enemies in range while testing the hook.
+  for (const enemy of combat.enemies) {
+    enemy.nextAttack = Infinity
+    combat.balance.enemies[enemy.type].retreatInterval = 0
+  }
   thug.hp = combat.balance.damage * (2 + combat.balance.hookDamage)
-  until(run, () => combat.enemies.every(enemy => combat.canReach(enemy, run.z)))
-  assert.equal(combat.selectTarget(run.now, run.z), thug)
+  until(run, () => combat.enemies.every(enemy => combat.canReach(enemy, run.z)), 20)
+  combat.target = thug
   combat.punch(run.now, run.z)
   assert.equal(combat.strike.hand, 'left')
   tick(run, 18)
@@ -176,15 +179,45 @@ test('block protects health, breaks on exhaustion, and combo still expires', () 
   assert.equal(combat.strike, strikes)
 })
 
+test('the quick enemy withdraws beyond reach, holds position, and comes back', () => {
+  const run = atFight()
+  const { combat } = run
+  const [thug, quick] = combat.enemies
+  for (const enemy of combat.enemies) enemy.nextAttack = Infinity
+  thug.z = run.z + 2.13
+  const stats = combat.balance.enemies.quick
+  stats.retreatHold = 0.25
+  until(run, () => quick.nextWithdrawal !== undefined)
+  const scheduled = quick.nextWithdrawal
+  until(run, () => quick.pose === 'withdraw')
+  const started = run.now
+  const origin = quick.z
+  assert.ok(started >= scheduled && started < scheduled + dt)
+  assert.equal(quick.nextWithdrawal, started + stats.retreatInterval)
+
+  combat.target = quick
+  until(run, () => !combat.canReach(quick, run.z))
+  assert.equal(combat.target, thug)
+  const arrives = started + stats.retreatDistance / stats.approach
+  until(run, () => run.now >= arrives)
+  assert.equal(quick.z, origin + stats.retreatDistance)
+  until(run, () => run.now >= arrives + stats.retreatHold - dt)
+  assert.equal(quick.z, origin + stats.retreatDistance)
+  until(run, () => quick.pose !== 'withdraw')
+  assert.equal(quick.z, origin)
+  assert.ok(combat.canReach(quick, run.z))
+})
+
 test('the group takes turns and a complete encounter ends in victory at default balance', () => {
   const run = new SandboxRun(defaultBalance, defaultWorld)
   run.start()
   const attackOrder = new Set()
-  for (let index = 0; index < 1800 && !run.finished; index++) {
+  for (let index = 0; index < 60 * 60 && !run.finished; index++) {
     tick(run, 1)
     const { combat } = run
     const attacking = combat.enemies.filter(enemy => enemy.pose === 'telegraph' || enemy.pose === 'attack')
     assert.ok(attacking.length <= 1)
+    assert.ok(combat.enemies.filter(enemy => enemy.pose === 'withdraw').length <= 1)
     if (attacking[0]) attackOrder.add(attacking[0].type)
     if (!run.fighting) continue
     const urgent = counterTarget(run)

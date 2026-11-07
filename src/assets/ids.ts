@@ -4,7 +4,7 @@ export type Hand = 'left' | 'right'
 
 export type EnemyPose =
   | 'approach' | 'positioning' | 'idle' | 'telegraph' | 'attack'
-  | 'recovery' | 'hit' | 'stunned' | 'retreat' | 'defeated'
+  | 'recovery' | 'hit' | 'stunned' | 'retreat' | 'withdraw' | 'defeated'
 
 export type HandPose = 'idle' | 'punch' | 'hook' | 'block' | 'broken'
 export type AnimationState = EnemyPose | HandPose

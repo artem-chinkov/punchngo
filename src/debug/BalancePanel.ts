@@ -35,6 +35,9 @@ const enemyFields: NumericField<EnemyBalance>[] = [
   ['strafe', 'Скорость в сторону', 0.1, 10, 0.05], ['windup', 'Замах, с', 0.2, 4, 0.01],
   ['cooldown', 'Перерыв после атаки, с', 0.2, 8, 0.05],
   ['recoil', 'Отшатывание, с', 0.05, 1, 0.01], ['reward', 'Награда за нокаут', 0, 5000],
+  ['retreatInterval', 'Интервал отхода, с (0 — выкл.)', 0, 20, 0.05],
+  ['retreatDistance', 'Дистанция отхода', 0, 3, 0.05],
+  ['retreatHold', 'Пауза перед возвратом, с', 0, 3, 0.05],
 ]
 const worldFields: NumericField<WorldSettings>[] = [
   ['speed', 'Скорость героя', 0.5, 12, 0.05], ['horizon', 'Положение горизонта', 0.22, 0.5, 0.01],
