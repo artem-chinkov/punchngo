@@ -1,0 +1,209 @@
+:root {
+  font-family: ui-monospace, Menlo, monospace;
+  color: #fff4d9;
+  background: #101b18;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; overflow: hidden; }
+#shell {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#game {
+  position: relative;
+  width: min(100%, 460px, 63dvh);
+  height: 100%;
+  max-height: 1000px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #304d35;
+}
+#stage, #ui { position: absolute; inset: 0; }
+#stage, #stage canvas { display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+#ui { pointer-events: none; }
+#rotate { display: none; text-align: center; padding: 1rem; font-weight: 700; }
+@media (orientation: landscape) and (pointer: coarse) {
+  #game { display: none; }
+  #rotate { display: block; }
+}
+[hidden] { display: none !important; }
+button { font: inherit; cursor: pointer; }
+.hud { position: absolute; inset: 0; }
+.top-bar, .bottom-bar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  color: #ffefd3;
+}
+.top-bar {
+  top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1.05fr 1fr;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 7px 10px;
+  background: #1a2924;
+  border: 1px solid #76835b;
+  box-shadow: 0 3px #15221c55;
+}
+.top-bar small { display: block; font-size: 9px; letter-spacing: 0.09em; color: #d6c5a3; }
+.top-bar strong { display: block; font-size: 18px; line-height: 1.13; }
+.hp-group { display: flex; align-items: center; gap: 7px; }
+.face {
+  width: 27px;
+  height: 28px;
+  position: relative;
+  background: #e5a672;
+  border: 2px solid #221e1a;
+  border-top: 5px solid #55382c;
+  border-radius: 6px 6px 10px 10px;
+}
+.face i { position: absolute; left: 4px; top: 6px; width: 4px; height: 3px; background: #332822; box-shadow: 11px 0 #332822; }
+.face b { position: absolute; left: 8px; top: 13px; width: 7px; height: 2px; background: #60362c; }
+.face[data-face="hurt"] i { transform: rotate(-9deg); }
+.face[data-face="critical"] { background: #b96c54; }
+.face[data-face="critical"] b { height: 4px; transform: rotate(-12deg); }
+.points { text-align: right; }
+progress {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 0;
+  display: block;
+}
+progress::-webkit-progress-bar { background: #0f1a17; }
+progress::-webkit-progress-value { background: #e8b261; }
+progress::-moz-progress-bar { background: #e8b261; }
+.route progress { height: 5px; margin-top: 5px; }
+.bottom-bar {
+  bottom: 12px;
+  background: #1a2924;
+  border: 1px solid #76835b;
+  padding: 8px 10px 9px;
+}
+.tip { color: #dcc9a3; font-size: 9px; min-height: 13px; margin-bottom: 5px; }
+.stamina-label { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.04em; margin-bottom: 5px; }
+.stamina-label b { color: #f7c576; }
+.bottom-bar progress { height: 7px; }
+.bottom-bar progress.broken { animation: blink 0.26s steps(2, jump-none) infinite alternate; }
+.bottom-bar progress.broken::-webkit-progress-bar { background: #8f382e; }
+@keyframes blink { to { opacity: 0.45; } }
+.pips { display: flex; gap: 4px; }
+.pips i { width: 12px; height: 8px; background: #0f1a17; border: 1px solid #7c805d; }
+.pips i.lit { background: #e8b261; border-color: #e8b261; }
+.pips i.primed { border-color: #f1cb6d; }
+.feedback {
+  position: absolute;
+  top: 19%;
+  left: 12px;
+  right: 12px;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  text-shadow: 1px 2px #202823, -1px 1px #202823, 0 -1px #202823;
+  color: #fff0bd;
+  font-size: 16px;
+  text-align: center;
+}
+.feedback strong:not(:empty) { font-size: 21px; }
+.feedback b[data-kind="counter"] { color: #ffdd63; }
+.feedback b[data-kind="hurt"], .feedback b[data-kind="broken"] { color: #ff9b82; }
+.round-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #18251c75;
+  pointer-events: auto;
+  padding: 23px;
+}
+.round-card {
+  width: 100%;
+  max-width: 350px;
+  background: #1a2924;
+  border: 1px solid #a4a16d;
+  box-shadow: 4px 5px #14211c;
+  padding: 20px;
+}
+.round-kicker { margin: 0 0 9px; color: #e6bb76; letter-spacing: 0.05em; font-size: 10px; }
+.round-card h1 { font-size: clamp(24px, 6vw, 33px); margin: 0; letter-spacing: -0.04em; }
+.round-copy { font-size: 12px; line-height: 1.55; color: #ead8b6; }
+.round-card button {
+  width: 100%;
+  padding: 10px;
+  background: #e9b96b;
+  color: #25251d;
+  font-weight: 750;
+  border: 0;
+}
+button:focus-visible { outline: 2px solid #fff0bd; outline-offset: 2px; }
+.dev-toggle {
+  position: absolute;
+  right: 12px;
+  top: 74px;
+  background: #263a31;
+  color: #ffefd3;
+  border: 1px solid #a3a577;
+  padding: 6px 9px;
+  font-size: 11px;
+  pointer-events: auto;
+}
+.dev-panel {
+  position: absolute;
+  inset: 12px;
+  padding: 14px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #182823;
+  border: 1px solid #a3a577;
+  color: #fff0cf;
+  font-size: 13px;
+  pointer-events: auto;
+}
+.dev-panel header, .dev-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dev-panel header { justify-content: space-between; }
+.dev-panel button, .dev-panel input { font: inherit; }
+.dev-panel button {
+  min-height: 34px;
+  padding: 4px 8px;
+  color: #ffefd3;
+  border: 1px solid #76835b;
+  background: #2b4136;
+}
+.dev-panel button[type="submit"] { border-color: #e2b675; }
+.dev-status { font-size: 12px; color: #e6bd77; }
+.dev-check { display: block; margin: 9px 0; }
+.dev-panel details { border-top: 1px solid #667555; padding: 7px 0; }
+.dev-panel summary { cursor: pointer; min-height: 25px; }
+.dev-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 3px 0;
+}
+.dev-field input {
+  width: 77px;
+  min-height: 30px;
+  border: 1px solid #76835b;
+  background: #11211a;
+  padding: 3px 6px;
+  font-size: 16px;
+}
+.dev-readout {
+  position: absolute;
+  top: 109px;
+  left: 12px;
+  color: #fff7ce;
+  background: #162922e8;
+  white-space: pre;
+  padding: 6px 8px;
+  font-size: 10px;
+}
+.dev-panel { z-index: 2; }
